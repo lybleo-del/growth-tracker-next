@@ -208,9 +208,9 @@ interface AppContextType {
 
 ### Custom Hooks
 - `useStorage()`: 数据存取与持久化
-- `usePomodoro()`: 番茄钟计时器逻辑
+- `usePomodoro()`: 番茄钟计时器逻辑，支持自定义专注/休息时长，开始后锁定配置
 - `useMood()`: 心情选择与追踪
-- `useWhiteNoise()`: 白噪音音频生成和控制，支持5种音效类型（白噪音、粉红噪音、雨声、咖啡馆、森林）
+- `useWhiteNoise()`: 白噪音音频生成和控制，支持5种音效类型（白噪音、粉红噪音、雨声、咖啡馆、森林），支持音量调节，包含AudioContext恢复逻辑
 - `useTheme()`: 主题切换管理，支持日间/夜间模式，本地存储持久化
 
 ### Cloud Sync (Supabase)
