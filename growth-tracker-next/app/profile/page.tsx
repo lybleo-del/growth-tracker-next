@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { useApp } from '../../lib/storage';
 import { useTheme } from '../../hooks/useTheme';
-import { User, Download, Upload, Trash2, Settings, Sun, Moon } from 'lucide-react';
+import { User, Download, Upload, Trash2, Settings, Sun, Moon, Cloud, CloudOff, RefreshCw } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { data, exportData, importData, resetData } = useApp();
+  const { data, exportData, importData, resetData, isCloudSyncEnabled, toggleCloudSync, syncFromCloud, isLoading } = useApp();
   const { theme, toggleTheme } = useTheme();
   const [showImport, setShowImport] = useState(false);
 
@@ -94,6 +94,37 @@ export default function ProfilePage() {
               {theme === 'light' ? '日间' : '夜间'}
             </span>
           </button>
+
+          {/* 云端同步 */}
+          <button
+            onClick={toggleCloudSync}
+            className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
+              isCloudSyncEnabled ? 'bg-primary/10 text-primary' : 'bg-muted hover:bg-muted/80'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              {isCloudSyncEnabled ? <Cloud className="w-5 h-5" /> : <CloudOff className="w-5 h-5" />}
+              <span>云端同步</span>
+            </div>
+            <span className="text-sm">
+              {isCloudSyncEnabled ? '已开启' : '已关闭'}
+            </span>
+          </button>
+
+          {/* 手动同步 */}
+          {isCloudSyncEnabled && (
+            <button
+              onClick={syncFromCloud}
+              disabled={isLoading}
+              className="w-full flex items-center justify-between p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all disabled:opacity-50"
+            >
+              <div className="flex items-center gap-3">
+                <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>同步数据</span>
+              </div>
+              {isLoading && <span className="text-sm text-muted-foreground">同步中...</span>}
+            </button>
+          )}
 
           {/* 导出数据 */}
           <button

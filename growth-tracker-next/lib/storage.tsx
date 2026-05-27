@@ -1,12 +1,23 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
-import type { AppData, TaskRecord, Mood, PomodoroSession } from './types';
+import type { AppData, TaskRecord, Mood, PomodoroSession, TaskType } from './types';
 import { DEFAULT_TASK_TYPES, DEFAULT_ACHIEVEMENTS, STORAGE_KEY } from './constants';
 import { generateId, formatDate, getTodayString, calculateStreak } from './utils';
 import { migrateLegacyData } from './migration';
+import {
+  supabaseCreateUserIfNotExists,
+  supabaseGetUserData,
+  supabaseSaveDailyRecord,
+  supabaseAddTaskRecord,
+  supabaseSaveMood,
+  supabaseAddPomodoroSession,
+  supabaseUpdateAchievement,
+  supabaseUpdateTaskType,
+  supabaseAddTaskType,
+  supabaseDeleteTaskType,
+} from './supabase';
 
-// 创建默认数据
 function createDefaultData(): AppData {
   return {
     user: {
@@ -20,15 +31,13 @@ function createDefaultData(): AppData {
   };
 }
 
-// 从存储加载数据
-function loadData(): AppData {
+function loadDataFromLocal(): AppData {
   if (typeof window === 'undefined') return createDefaultData();
 
   try {
-    // 首先尝试迁移旧数据
     const migrated = migrateLegacyData();
     if (migrated) {
-      saveData(migrated);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
       return migrated;
     }
 
@@ -43,18 +52,15 @@ function loadData(): AppData {
   return createDefaultData();
 }
 
-// 保存数据
-function saveData(data: AppData): void {
+function saveDataToLocal(data: AppData): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-// 检查成就解锁
 function checkAchievements(data: AppData): AppData {
   const newData = { ...data };
   let updated = false;
 
-  // 新手上路 - 首次打卡
   const totalTasks = newData.dailyRecords.reduce((sum, r) => sum + r.tasks.length, 0);
   if (totalTasks > 0 && !newData.achievements[0].unlocked) {
     newData.achievements[0] = {
@@ -65,7 +71,6 @@ function checkAchievements(data: AppData): AppData {
     updated = true;
   }
 
-  // 坚持一周 - 连续打卡7天
   const streak = calculateStreak(newData.dailyRecords);
   if (streak >= 7 && !newData.achievements[1].unlocked) {
     newData.achievements[1] = {
@@ -76,7 +81,6 @@ function checkAchievements(data: AppData): AppData {
     updated = true;
   }
 
-  // 月度达人 - 30天打卡
   if (newData.dailyRecords.length >= 30 && !newData.achievements[2].unlocked) {
     newData.achievements[2] = {
       ...newData.achievements[2],
@@ -86,7 +90,6 @@ function checkAchievements(data: AppData): AppData {
     updated = true;
   }
 
-  // 知识渊博 - 读书50次
   const bookTasks = newData.dailyRecords.reduce((sum, r) => 
     sum + r.tasks.filter(t => t.type === 1).length, 0
   );
@@ -99,11 +102,10 @@ function checkAchievements(data: AppData): AppData {
     updated = true;
   }
 
-  // 代码大师 - 编程100小时
   const codingMinutes = newData.dailyRecords.reduce((sum, r) => 
     sum + r.tasks.filter(t => t.type === 2).reduce((s, t) => s + t.duration, 0), 0
   );
-  if (codingMinutes >= 6000 && !newData.achievements[4].unlocked) { // 100小时 * 60分钟
+  if (codingMinutes >= 6000 && !newData.achievements[4].unlocked) {
     newData.achievements[4] = {
       ...newData.achievements[4],
       unlocked: true,
@@ -112,7 +114,6 @@ function checkAchievements(data: AppData): AppData {
     updated = true;
   }
 
-  // 专注达人 - 100个番茄钟
   const totalPomodoros = newData.dailyRecords.reduce((sum, r) => 
     sum + r.pomodoroSessions.length, 0
   );
@@ -128,9 +129,11 @@ function checkAchievements(data: AppData): AppData {
   return updated ? newData : data;
 }
 
-// Context 类型
 interface AppContextType {
   data: AppData;
+  isLoading: boolean;
+  isCloudSyncEnabled: boolean;
+  toggleCloudSync: () => void;
   addTaskRecord: (date: string, task: Omit<TaskRecord, 'id' | 'completedAt'>) => void;
   saveMood: (date: string, mood: Mood, note?: string) => void;
   addPomodoroSession: (session: Omit<PomodoroSession, 'id' | 'completedAt'>) => void;
@@ -138,24 +141,62 @@ interface AppContextType {
   exportData: () => void;
   importData: (data: AppData) => void;
   resetData: () => void;
-  updateTaskType: (id: number, updates: Partial<import('./types').TaskType>) => void;
-  addTaskType: (taskType: Omit<import('./types').TaskType, 'id'>) => void;
+  updateTaskType: (id: number, updates: Partial<TaskType>) => void;
+  addTaskType: (taskType: Omit<TaskType, 'id'>) => void;
   deleteTaskType: (id: number) => void;
+  syncFromCloud: () => Promise<void>;
 }
 
-// 创建 Context
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// Provider 组件
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState<AppData>(() => loadData());
+  const [data, setData] = useState<AppData>(() => loadDataFromLocal());
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCloudSyncEnabled, setIsCloudSyncEnabled] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('cloudSyncEnabled') === 'true';
+  });
 
-  // 保存数据到 localStorage
   useEffect(() => {
-    saveData(data);
-  }, [data]);
+    saveDataToLocal(data);
+    localStorage.setItem('cloudSyncEnabled', String(isCloudSyncEnabled));
+  }, [data, isCloudSyncEnabled]);
 
-  // 添加任务记录
+  useEffect(() => {
+    if (isCloudSyncEnabled && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      syncFromCloud();
+    }
+  }, [isCloudSyncEnabled]);
+
+  const syncFromCloud = useCallback(async () => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return;
+    
+    setIsLoading(true);
+    try {
+      const userId = data.user.id;
+      await supabaseCreateUserIfNotExists(userId, data.user.name);
+      
+      const cloudData = await supabaseGetUserData(userId);
+      
+      if (cloudData.taskTypes.length > 0 || cloudData.dailyRecords.length > 0) {
+        setData(prev => ({
+          ...prev,
+          taskTypes: cloudData.taskTypes.length > 0 ? cloudData.taskTypes : prev.taskTypes,
+          achievements: cloudData.achievements.length > 0 ? cloudData.achievements : prev.achievements,
+          dailyRecords: cloudData.dailyRecords.length > 0 ? cloudData.dailyRecords : prev.dailyRecords,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to sync from cloud:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [data.user.id, data.user.name]);
+
+  const toggleCloudSync = useCallback(() => {
+    setIsCloudSyncEnabled(prev => !prev);
+  }, []);
+
   const addTaskRecord = useCallback((date: string, task: Omit<TaskRecord, 'id' | 'completedAt'>) => {
     setData(prevData => {
       const newRecord: TaskRecord = {
@@ -185,11 +226,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         dailyRecords: newDailyRecords,
       };
 
+      if (isCloudSyncEnabled && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        supabaseAddTaskRecord(prevData.user.id, date, {
+          type: task.type,
+          duration: task.duration,
+          notes: task.notes,
+          tags: task.tags,
+        }).catch(console.error);
+      }
+
       return checkAchievements(newData);
     });
-  }, []);
+  }, [isCloudSyncEnabled]);
 
-  // 保存心情
   const saveMood = useCallback((date: string, mood: Mood, note?: string) => {
     setData(prevData => {
       const newDailyRecords = [...prevData.dailyRecords];
@@ -209,14 +258,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
+      if (isCloudSyncEnabled && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        supabaseSaveMood(prevData.user.id, date, mood, note).catch(console.error);
+      }
+
       return {
         ...prevData,
         dailyRecords: newDailyRecords,
       };
     });
-  }, []);
+  }, [isCloudSyncEnabled]);
 
-  // 添加番茄钟记录
   const addPomodoroSession = useCallback((session: Omit<PomodoroSession, 'id' | 'completedAt'>) => {
     setData(prevData => {
       const today = getTodayString();
@@ -242,6 +294,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
+      if (isCloudSyncEnabled && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        supabaseAddPomodoroSession(prevData.user.id, today, session.duration, session.taskType).catch(console.error);
+      }
+
       const newData = {
         ...prevData,
         dailyRecords: newDailyRecords,
@@ -249,9 +305,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       return checkAchievements(newData);
     });
-  }, []);
+  }, [isCloudSyncEnabled]);
 
-  // 保存每日感悟
   const saveDailyNotes = useCallback((date: string, notes: string) => {
     setData(prevData => {
       const newDailyRecords = [...prevData.dailyRecords];
@@ -271,14 +326,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
+      if (isCloudSyncEnabled && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        supabaseSaveDailyRecord(prevData.user.id, date, notes).catch(console.error);
+      }
+
       return {
         ...prevData,
         dailyRecords: newDailyRecords,
       };
     });
-  }, []);
+  }, [isCloudSyncEnabled]);
 
-  // 导出数据
   const exportData = useCallback(() => {
     const dataStr = JSON.stringify(data, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
@@ -290,51 +348,78 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     linkElement.click();
   }, [data]);
 
-  // 导入数据
   const importData = useCallback((newData: AppData) => {
     setData(newData);
   }, []);
 
-  // 重置数据
   const resetData = useCallback(() => {
     if (confirm('确定要重置所有数据吗？此操作不可恢复！')) {
       setData(createDefaultData());
     }
   }, []);
 
-  // 更新任务类型
-  const updateTaskType = useCallback((id: number, updates: Partial<import('./types').TaskType>) => {
-    setData(prevData => ({
-      ...prevData,
-      taskTypes: prevData.taskTypes.map(type =>
-        type.id === id ? { ...type, ...updates } : type
-      ),
-    }));
-  }, []);
+  const updateTaskType = useCallback((id: number, updates: Partial<TaskType>) => {
+    setData(prevData => {
+      const newData = {
+        ...prevData,
+        taskTypes: prevData.taskTypes.map(type =>
+          type.id === id ? { ...type, ...updates } : type
+        ),
+      };
 
-  // 添加任务类型
-  const addTaskType = useCallback((taskType: Omit<import('./types').TaskType, 'id'>) => {
+      if (isCloudSyncEnabled && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        const supabaseUpdates: { name?: string; icon?: string; color?: string; default_duration?: number } = {};
+        if (updates.name) supabaseUpdates.name = updates.name;
+        if (updates.icon) supabaseUpdates.icon = updates.icon;
+        if (updates.color) supabaseUpdates.color = updates.color;
+        if (updates.defaultDuration !== undefined) supabaseUpdates.default_duration = updates.defaultDuration;
+        supabaseUpdateTaskType(prevData.user.id, id, supabaseUpdates).catch(console.error);
+      }
+
+      return newData;
+    });
+  }, [isCloudSyncEnabled]);
+
+  const addTaskType = useCallback((taskType: Omit<TaskType, 'id'>) => {
     setData(prevData => {
       const maxId = Math.max(...prevData.taskTypes.map(t => t.id));
       const newTaskType = { ...taskType, id: maxId + 1 };
+
+      if (isCloudSyncEnabled && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        supabaseAddTaskType(prevData.user.id, {
+          name: taskType.name,
+          icon: taskType.icon,
+          color: taskType.color,
+          default_duration: taskType.defaultDuration,
+        }).catch(console.error);
+      }
+
       return {
         ...prevData,
         taskTypes: [...prevData.taskTypes, newTaskType],
       };
     });
-  }, []);
+  }, [isCloudSyncEnabled]);
 
-  // 删除任务类型
   const deleteTaskType = useCallback((id: number) => {
-    setData(prevData => ({
-      ...prevData,
-      taskTypes: prevData.taskTypes.filter(type => type.id !== id),
-    }));
-  }, []);
+    setData(prevData => {
+      if (isCloudSyncEnabled && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        supabaseDeleteTaskType(prevData.user.id, id).catch(console.error);
+      }
+
+      return {
+        ...prevData,
+        taskTypes: prevData.taskTypes.filter(type => type.id !== id),
+      };
+    });
+  }, [isCloudSyncEnabled]);
 
   return (
     <AppContext.Provider value={{
       data,
+      isLoading,
+      isCloudSyncEnabled,
+      toggleCloudSync,
       addTaskRecord,
       saveMood,
       addPomodoroSession,
@@ -345,13 +430,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateTaskType,
       addTaskType,
       deleteTaskType,
+      syncFromCloud,
     }}>
       {children}
     </AppContext.Provider>
   );
 }
 
-// Hook
 export function useApp() {
   const context = useContext(AppContext);
   if (!context) {
