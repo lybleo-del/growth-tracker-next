@@ -12,6 +12,7 @@ graph TB
     subgraph Data
         F[LocalStorage]
         G[TypeScript Models]
+        H[Supabase Cloud]
     end
     
     A --> B
@@ -20,6 +21,7 @@ graph TB
     B --> D
     B --> E
     C --> G
+    C --> H
 ```
 
 ## 2. Technology Description
@@ -29,7 +31,8 @@ graph TB
 - **Charts**: Recharts
 - **Animations**: Framer Motion
 - **Icons**: Lucide React
-- **Storage**: Browser LocalStorage (client-side only)
+- **Storage**: Browser LocalStorage (client-side) + Supabase Cloud Database
+- **Cloud Database**: Supabase (PostgreSQL) - Optional cloud sync
 - **Initialization**: Next.js create-next-app
 
 ## 3. Route Definitions
@@ -161,6 +164,7 @@ growth-tracker-next/
 │       └── DistributionChart.tsx
 ├── lib/
 │   ├── storage.ts           # 数据管理
+│   ├── supabase.ts         # Supabase云端同步客户端
 │   ├── migration.ts         # 旧数据迁移
 │   ├── types.ts             # 类型定义
 │   ├── constants.ts         # 常量
@@ -185,6 +189,10 @@ growth-tracker-next/
 ```typescript
 interface AppContextType {
   data: AppData;
+  isLoading: boolean;
+  isCloudSyncEnabled: boolean;
+  toggleCloudSync: () => void;
+  syncFromCloud: () => Promise<void>;
   addTaskRecord: (date: string, task: Omit<TaskRecord, 'id' | 'completedAt'>) => void;
   saveMood: (date: string, mood: Mood, note?: string) => void;
   addPomodoroSession: (session: Omit<PomodoroSession, 'id' | 'completedAt'>) => void;
@@ -204,6 +212,20 @@ interface AppContextType {
 - `useMood()`: 心情选择与追踪
 - `useWhiteNoise()`: 白噪音音频生成和控制，支持5种音效类型（白噪音、粉红噪音、雨声、咖啡馆、森林）
 - `useTheme()`: 主题切换管理，支持日间/夜间模式，本地存储持久化
+
+### Cloud Sync (Supabase)
+- `supabase.ts`: Supabase客户端封装，提供以下API：
+  - `supabaseCreateUserIfNotExists()`: 创建用户（如果不存在）
+  - `supabaseGetUserData()`: 获取用户数据（任务类型、成就、日记录）
+  - `supabaseSaveDailyRecord()`: 保存每日记录
+  - `supabaseAddTaskRecord()`: 添加任务记录
+  - `supabaseSaveMood()`: 保存心情记录
+  - `supabaseAddPomodoroSession()`: 添加番茄钟记录
+  - `supabaseUpdateTaskType()`: 更新任务类型
+  - `supabaseAddTaskType()`: 添加任务类型
+  - `supabaseDeleteTaskType()`: 删除任务类型
+- 使用动态导入避免SSR问题
+- 支持本地存储和云端存储双重保障
 
 ## 7. Data Migration
 

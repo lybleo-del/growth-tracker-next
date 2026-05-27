@@ -32,6 +32,7 @@
 | 图表库 | Recharts | 数据可视化 |
 | 动画 | Framer Motion | 流畅交互动画 |
 | 图标 | Lucide React | 现代图标库 |
+| 云端数据库 | Supabase (PostgreSQL) | 可选云端同步，解决数据持久化问题 |
 
 ### 项目结构
 
@@ -62,7 +63,8 @@ growth-tracker-next/
 │       ├── TrendChart.tsx         # 趋势图
 │       └── DistributionChart.tsx  # 分布图
 ├── lib/                           # 工具函数
-│   ├── storage.ts                 # 数据存储管理
+│   ├── storage.ts                 # 数据存储管理（支持云端同步）
+│   ├── supabase.ts               # Supabase云端同步客户端
 │   ├── migration.ts               # 旧版数据迁移
 │   ├── types.ts                   # TypeScript 类型定义
 │   ├── constants.ts               # 常量配置
@@ -385,6 +387,13 @@ Props: {
 - [ ] 心情与任务完成关联分析
 - [ ] 历史心情记录
 
+### Phase 6：云端同步功能（可选）
+- [ ] 集成Supabase数据库
+- [ ] 实现用户数据云端备份
+- [ ] 支持本地存储和云端双重保障
+- [ ] 提供手动同步功能
+- [ ] 数据迁移工具（从本地到云端）
+
 ---
 
 ## 状态管理
@@ -396,6 +405,10 @@ Props: {
 
 interface AppContextType {
   data: AppData;
+  isLoading: boolean;
+  isCloudSyncEnabled: boolean;
+  toggleCloudSync: () => void;
+  syncFromCloud: () => Promise<void>;
   addTaskRecord: (date: string, task: Omit<TaskRecord, 'id' | 'completedAt'>) => void;
   saveMood: (date: string, mood: Mood, note?: string) => void;
   addPomodoroSession: (session: Omit<PomodoroSession, 'id' | 'completedAt'>) => void;
@@ -461,8 +474,8 @@ interface AppContextType {
 
 ## 后续优化方向（可选）
 
-- 数据云同步（Firebase/Supabase）
+- ~~数据云同步（Firebase/Supabase）~~ ✅ 已实现Supabase云同步
 - 提醒通知功能
 - 社交分享功能
-- 更多白噪音选项
-- 数据备份到云端
+- ~~更多白噪音选项~~ ✅ 已实现5种音效
+- ~~数据备份到云端~~ ✅ 已实现
