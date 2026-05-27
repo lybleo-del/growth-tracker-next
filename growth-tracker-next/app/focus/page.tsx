@@ -28,12 +28,10 @@ export default function FocusPage() {
     setCustomDuration 
   } = usePomodoro(handleSessionComplete);
 
-  // 计算进度百分比
   const totalTime = customDurations[mode];
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
 
-  // 显示时长设置
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState(true);
 
   return (
     <PageContainer>
@@ -41,13 +39,14 @@ export default function FocusPage() {
         <h1 className="text-2xl font-bold">专注模式</h1>
         <button
           onClick={() => setShowSettings(!showSettings)}
-          className="p-2 hover:bg-muted rounded-lg transition-colors"
+          className={`p-2 rounded-lg transition-colors ${
+            showSettings ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+          }`}
         >
           <Settings className="w-5 h-5" />
         </button>
       </div>
 
-      {/* 设置面板 */}
       {showSettings && (
         <div className="bg-card border border-border rounded-2xl p-4 mb-6">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
@@ -60,7 +59,7 @@ export default function FocusPage() {
               <button
                 onClick={() => setCustomDuration('focus', customDurations.focus - 60)}
                 disabled={isRunning}
-                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+                className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50 text-lg font-bold"
               >
                 -
               </button>
@@ -71,12 +70,12 @@ export default function FocusPage() {
                 value={Math.floor(customDurations.focus / 60)}
                 onChange={(e) => setCustomDuration('focus', parseInt(e.target.value) * 60)}
                 disabled={isRunning}
-                className="w-16 px-2 py-1 bg-muted rounded-lg border border-border text-center disabled:opacity-50"
+                className="flex-1 px-3 py-2 bg-muted rounded-lg border border-border text-center font-medium disabled:opacity-50"
               />
               <button
                 onClick={() => setCustomDuration('focus', customDurations.focus + 60)}
                 disabled={isRunning}
-                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+                className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50 text-lg font-bold"
               >
                 +
               </button>
@@ -86,7 +85,7 @@ export default function FocusPage() {
               <button
                 onClick={() => setCustomDuration('shortBreak', customDurations.shortBreak - 60)}
                 disabled={isRunning}
-                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+                className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50 text-lg font-bold"
               >
                 -
               </button>
@@ -97,12 +96,12 @@ export default function FocusPage() {
                 value={Math.floor(customDurations.shortBreak / 60)}
                 onChange={(e) => setCustomDuration('shortBreak', parseInt(e.target.value) * 60)}
                 disabled={isRunning}
-                className="w-16 px-2 py-1 bg-muted rounded-lg border border-border text-center disabled:opacity-50"
+                className="flex-1 px-3 py-2 bg-muted rounded-lg border border-border text-center font-medium disabled:opacity-50"
               />
               <button
                 onClick={() => setCustomDuration('shortBreak', customDurations.shortBreak + 60)}
                 disabled={isRunning}
-                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+                className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50 text-lg font-bold"
               >
                 +
               </button>
@@ -112,7 +111,7 @@ export default function FocusPage() {
               <button
                 onClick={() => setCustomDuration('longBreak', customDurations.longBreak - 60)}
                 disabled={isRunning}
-                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+                className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50 text-lg font-bold"
               >
                 -
               </button>
@@ -123,30 +122,30 @@ export default function FocusPage() {
                 value={Math.floor(customDurations.longBreak / 60)}
                 onChange={(e) => setCustomDuration('longBreak', parseInt(e.target.value) * 60)}
                 disabled={isRunning}
-                className="w-16 px-2 py-1 bg-muted rounded-lg border border-border text-center disabled:opacity-50"
+                className="flex-1 px-3 py-2 bg-muted rounded-lg border border-border text-center font-medium disabled:opacity-50"
               />
               <button
                 onClick={() => setCustomDuration('longBreak', customDurations.longBreak + 60)}
                 disabled={isRunning}
-                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+                className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50 text-lg font-bold"
               >
                 +
               </button>
             </div>
             {isRunning && (
-              <p className="text-xs text-muted-foreground text-center">
-                ⏸️ 计时进行中，暂停后可修改
+              <p className="text-sm text-primary text-center font-medium">
+                ⏸️ 计时进行中，暂停后可修改时长
               </p>
             )}
           </div>
         </div>
       )}
 
-      {/* 模式切换 */}
       <div className="flex gap-2 mb-8 justify-center">
         <button
           onClick={() => switchMode('focus')}
-          className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+          disabled={isRunning}
+          className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50 ${
             mode === 'focus'
               ? 'bg-primary text-primary-foreground'
               : 'bg-muted hover:bg-muted/80'
@@ -157,7 +156,8 @@ export default function FocusPage() {
         </button>
         <button
           onClick={() => switchMode('shortBreak')}
-          className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+          disabled={isRunning}
+          className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50 ${
             mode === 'shortBreak'
               ? 'bg-green-500 text-white'
               : 'bg-muted hover:bg-muted/80'
@@ -168,7 +168,8 @@ export default function FocusPage() {
         </button>
         <button
           onClick={() => switchMode('longBreak')}
-          className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+          disabled={isRunning}
+          className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50 ${
             mode === 'longBreak'
               ? 'bg-blue-500 text-white'
               : 'bg-muted hover:bg-muted/80'
@@ -178,10 +179,8 @@ export default function FocusPage() {
         </button>
       </div>
 
-      {/* 计时器 */}
       <div className="flex flex-col items-center mb-8">
         <div className="relative w-64 h-64">
-          {/* 背景圆环 */}
           <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
             <circle
               cx="50"
@@ -191,7 +190,6 @@ export default function FocusPage() {
               stroke="var(--color-muted)"
               strokeWidth="8"
             />
-            {/* 进度圆环 */}
             <circle
               cx="50"
               cy="50"
@@ -205,7 +203,6 @@ export default function FocusPage() {
               style={{ transition: 'stroke-dashoffset 0.3s ease' }}
             />
           </svg>
-          {/* 时间显示 */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-5xl font-bold">
               {formatTime(timeLeft)}
@@ -217,7 +214,6 @@ export default function FocusPage() {
         </div>
       </div>
 
-      {/* 控制按钮 */}
       <div className="flex gap-4 justify-center mb-8">
         <button
           onClick={toggleTimer}
@@ -237,7 +233,6 @@ export default function FocusPage() {
         </button>
       </div>
 
-      {/* 白噪音 */}
       <div className="bg-card border border-border rounded-2xl p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">白噪音</h2>
@@ -252,10 +247,9 @@ export default function FocusPage() {
           )}
         </div>
         
-        {/* 音量控制 */}
         {isPlaying && (
           <div className="mb-4 flex items-center gap-3">
-            <Volume2 className="w-4 h-4 text-muted-foreground" />
+            <Volume2 className="w-5 h-5 text-muted-foreground" />
             <input
               type="range"
               min="0"
@@ -263,9 +257,11 @@ export default function FocusPage() {
               step="0.1"
               value={volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+              className="flex-1 h-3 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
-            <span className="text-xs text-muted-foreground w-8">{Math.round(volume * 100)}%</span>
+            <span className="text-sm text-muted-foreground w-12 text-right font-medium">
+              {Math.round(volume * 100)}%
+            </span>
           </div>
         )}
         
@@ -275,7 +271,7 @@ export default function FocusPage() {
               key={noise.id}
               onClick={() => play(noise.id as any)}
               className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
-                currentNoise === noise.id
+                currentNoise === noise.id && isPlaying
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted hover:bg-muted/80'
               }`}
@@ -283,7 +279,7 @@ export default function FocusPage() {
               <span>{noise.emoji}</span>
               <span className="text-sm">{noise.name}</span>
               {currentNoise === noise.id && isPlaying && (
-                <span className="ml-1">
+                <span className="ml-1 animate-pulse">
                   <Volume2 className="w-4 h-4" />
                 </span>
               )}

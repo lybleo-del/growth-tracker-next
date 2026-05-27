@@ -16,12 +16,11 @@ interface WhiteNoiseHook {
 export function useWhiteNoise(): WhiteNoiseHook {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentNoise, setCurrentNoise] = useState<NoiseType | null>(null);
-  const [volume, setVolumeState] = useState(0.3);
+  const [volume, setVolumeState] = useState(0.7);
   const audioContextRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<AudioNode[]>([]);
   const gainNodeRef = useRef<GainNode | null>(null);
 
-  // 清理音频节点
   const cleanup = useCallback(() => {
     if (audioContextRef.current) {
       nodesRef.current.forEach(node => {
@@ -39,7 +38,6 @@ export function useWhiteNoise(): WhiteNoiseHook {
     }
   }, []);
 
-  // 生成白噪音
   const createWhiteNoise = useCallback((ctx: AudioContext) => {
     const bufferSize = 2 * ctx.sampleRate;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -56,7 +54,6 @@ export function useWhiteNoise(): WhiteNoiseHook {
     return whiteNoise;
   }, []);
 
-  // 生成粉红噪音
   const createPinkNoise = useCallback((ctx: AudioContext) => {
     const bufferSize = 2 * ctx.sampleRate;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -84,22 +81,17 @@ export function useWhiteNoise(): WhiteNoiseHook {
     return pinkNoise;
   }, []);
 
-  // 播放指定类型的噪音
   const play = useCallback(async (type: NoiseType) => {
-    // 清理旧的音频
     cleanup();
     
-    // 创建新的 AudioContext
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     const ctx = new AudioContextClass();
     audioContextRef.current = ctx;
     
-    // 恢复音频上下文（Chrome 70+ 要求用户交互后才能播放）
     if (ctx.state === 'suspended') {
       await ctx.resume();
     }
     
-    // 创建增益节点（控制音量）
     const gainNode = ctx.createGain();
     gainNode.gain.value = volume;
     gainNodeRef.current = gainNode;
@@ -108,7 +100,6 @@ export function useWhiteNoise(): WhiteNoiseHook {
     let noiseSource: AudioBufferSourceNode;
     let lastNode: AudioNode;
     
-    // 根据类型创建不同的噪音
     switch (type) {
       case 'white':
         noiseSource = createWhiteNoise(ctx);
@@ -119,7 +110,6 @@ export function useWhiteNoise(): WhiteNoiseHook {
         lastNode = noiseSource;
         break;
       case 'rain':
-        // 雨声使用白噪音 + 低频调制
         noiseSource = createWhiteNoise(ctx);
         const rainFilter = ctx.createBiquadFilter();
         rainFilter.type = 'lowpass';
@@ -129,7 +119,6 @@ export function useWhiteNoise(): WhiteNoiseHook {
         nodesRef.current.push(rainFilter);
         break;
       case 'cafe':
-        // 咖啡馆使用粉红噪音 + 中频
         noiseSource = createPinkNoise(ctx);
         const cafeFilter = ctx.createBiquadFilter();
         cafeFilter.type = 'bandpass';
@@ -140,7 +129,6 @@ export function useWhiteNoise(): WhiteNoiseHook {
         nodesRef.current.push(cafeFilter);
         break;
       case 'forest':
-        // 森林使用粉红噪音 + 高频调制
         noiseSource = createPinkNoise(ctx);
         const forestFilter = ctx.createBiquadFilter();
         forestFilter.type = 'highpass';
@@ -154,18 +142,15 @@ export function useWhiteNoise(): WhiteNoiseHook {
         lastNode = noiseSource;
     }
     
-    // 连接最后一个节点到增益节点
     lastNode.connect(gainNode);
     nodesRef.current.push(noiseSource);
     
-    // 开始播放
     noiseSource.start();
     
     setCurrentNoise(type);
     setIsPlaying(true);
   }, [volume, createWhiteNoise, createPinkNoise, cleanup]);
 
-  // 停止播放
   const stop = useCallback(() => {
     cleanup();
     if (audioContextRef.current) {
@@ -176,7 +161,6 @@ export function useWhiteNoise(): WhiteNoiseHook {
     setCurrentNoise(null);
   }, [cleanup]);
 
-  // 设置音量
   const setVolume = useCallback((newVolume: number) => {
     setVolumeState(newVolume);
     if (gainNodeRef.current) {
@@ -184,7 +168,6 @@ export function useWhiteNoise(): WhiteNoiseHook {
     }
   }, []);
 
-  // 组件卸载时清理
   useEffect(() => {
     return () => {
       stop();

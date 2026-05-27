@@ -32,6 +32,7 @@ export const WHITE_NOISES: { id: string; name: string; emoji: string }[] = [
   { id: 'rain', name: '雨声', emoji: '🌧️' },
   { id: 'cafe', name: '咖啡馆', emoji: '☕' },
   { id: 'white', name: '白噪音', emoji: '🌊' },
+  { id: 'pink', name: '粉红噪音', emoji: '🎵' },
   { id: 'forest', name: '森林', emoji: '🌲' },
 ];
 
