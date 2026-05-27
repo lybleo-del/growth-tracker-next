@@ -85,7 +85,7 @@ export function useWhiteNoise(): WhiteNoiseHook {
   }, []);
 
   // 播放指定类型的噪音
-  const play = useCallback((type: NoiseType) => {
+  const play = useCallback(async (type: NoiseType) => {
     // 清理旧的音频
     cleanup();
     
@@ -94,6 +94,11 @@ export function useWhiteNoise(): WhiteNoiseHook {
     const ctx = new AudioContextClass();
     audioContextRef.current = ctx;
     
+    // 恢复音频上下文（Chrome 70+ 要求用户交互后才能播放）
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+    
     // 创建增益节点（控制音量）
     const gainNode = ctx.createGain();
     gainNode.gain.value = volume;
@@ -101,14 +106,17 @@ export function useWhiteNoise(): WhiteNoiseHook {
     gainNode.connect(ctx.destination);
     
     let noiseSource: AudioBufferSourceNode;
+    let lastNode: AudioNode;
     
     // 根据类型创建不同的噪音
     switch (type) {
       case 'white':
         noiseSource = createWhiteNoise(ctx);
+        lastNode = noiseSource;
         break;
       case 'pink':
         noiseSource = createPinkNoise(ctx);
+        lastNode = noiseSource;
         break;
       case 'rain':
         // 雨声使用白噪音 + 低频调制
@@ -117,12 +125,9 @@ export function useWhiteNoise(): WhiteNoiseHook {
         rainFilter.type = 'lowpass';
         rainFilter.frequency.value = 1000;
         noiseSource.connect(rainFilter);
-        rainFilter.connect(gainNode);
+        lastNode = rainFilter;
         nodesRef.current.push(rainFilter);
-        noiseSource.start();
-        setCurrentNoise(type);
-        setIsPlaying(true);
-        return;
+        break;
       case 'cafe':
         // 咖啡馆使用粉红噪音 + 中频
         noiseSource = createPinkNoise(ctx);
@@ -131,12 +136,9 @@ export function useWhiteNoise(): WhiteNoiseHook {
         cafeFilter.frequency.value = 800;
         cafeFilter.Q.value = 0.5;
         noiseSource.connect(cafeFilter);
-        cafeFilter.connect(gainNode);
+        lastNode = cafeFilter;
         nodesRef.current.push(cafeFilter);
-        noiseSource.start();
-        setCurrentNoise(type);
-        setIsPlaying(true);
-        return;
+        break;
       case 'forest':
         // 森林使用粉红噪音 + 高频调制
         noiseSource = createPinkNoise(ctx);
@@ -144,19 +146,20 @@ export function useWhiteNoise(): WhiteNoiseHook {
         forestFilter.type = 'highpass';
         forestFilter.frequency.value = 2000;
         noiseSource.connect(forestFilter);
-        forestFilter.connect(gainNode);
+        lastNode = forestFilter;
         nodesRef.current.push(forestFilter);
-        noiseSource.start();
-        setCurrentNoise(type);
-        setIsPlaying(true);
-        return;
+        break;
       default:
         noiseSource = createWhiteNoise(ctx);
+        lastNode = noiseSource;
     }
     
-    noiseSource.connect(gainNode);
-    noiseSource.start();
+    // 连接最后一个节点到增益节点
+    lastNode.connect(gainNode);
     nodesRef.current.push(noiseSource);
+    
+    // 开始播放
+    noiseSource.start();
     
     setCurrentNoise(type);
     setIsPlaying(true);

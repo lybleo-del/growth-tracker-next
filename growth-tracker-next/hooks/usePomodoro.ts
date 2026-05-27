@@ -10,28 +10,33 @@ export function usePomodoro(onComplete?: () => void) {
   const [timeLeft, setTimeLeft] = useState(POMODORO_DURATION);
   const [isRunning, setIsRunning] = useState(false);
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
+  const [customDurations, setCustomDurations] = useState({
+    focus: POMODORO_DURATION,
+    shortBreak: SHORT_BREAK_DURATION,
+    longBreak: LONG_BREAK_DURATION,
+  });
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // 根据模式获取时长
-  const getDuration = useCallback((m: PomodoroMode): number => {
-    switch (m) {
-      case 'focus':
-        return POMODORO_DURATION;
-      case 'shortBreak':
-        return SHORT_BREAK_DURATION;
-      case 'longBreak':
-        return LONG_BREAK_DURATION;
-      default:
-        return POMODORO_DURATION;
-    }
-  }, []);
 
   // 切换模式
   const switchMode = useCallback((newMode: PomodoroMode) => {
-    setMode(newMode);
-    setTimeLeft(getDuration(newMode));
-    setIsRunning(false);
-  }, [getDuration]);
+    if (!isRunning) {
+      setMode(newMode);
+      setTimeLeft(customDurations[newMode]);
+    }
+  }, [customDurations, isRunning]);
+
+  // 设置自定义时长
+  const setCustomDuration = useCallback((m: PomodoroMode, duration: number) => {
+    if (!isRunning) {
+      setCustomDurations(prev => ({
+        ...prev,
+        [m]: Math.max(1, duration),
+      }));
+      if (m === mode) {
+        setTimeLeft(Math.max(1, duration));
+      }
+    }
+  }, [mode, isRunning]);
 
   // 开始/暂停
   const toggleTimer = useCallback(() => {
@@ -41,8 +46,8 @@ export function usePomodoro(onComplete?: () => void) {
   // 重置
   const resetTimer = useCallback(() => {
     setIsRunning(false);
-    setTimeLeft(getDuration(mode));
-  }, [mode, getDuration]);
+    setTimeLeft(customDurations[mode]);
+  }, [mode, customDurations]);
 
   // 完成一个番茄钟
   const completeSession = useCallback(() => {
@@ -57,14 +62,17 @@ export function usePomodoro(onComplete?: () => void) {
     if (mode === 'focus') {
       const newSessions = sessionsCompleted + 1;
       if (newSessions % 4 === 0) {
-        switchMode('longBreak');
+        setMode('longBreak');
+        setTimeLeft(customDurations.longBreak);
       } else {
-        switchMode('shortBreak');
+        setMode('shortBreak');
+        setTimeLeft(customDurations.shortBreak);
       }
     } else {
-      switchMode('focus');
+      setMode('focus');
+      setTimeLeft(customDurations.focus);
     }
-  }, [mode, sessionsCompleted, switchMode, onComplete]);
+  }, [mode, sessionsCompleted, customDurations, onComplete]);
 
   // 计时器逻辑
   useEffect(() => {
@@ -88,8 +96,10 @@ export function usePomodoro(onComplete?: () => void) {
     timeLeft,
     isRunning,
     sessionsCompleted,
+    customDurations,
     switchMode,
     toggleTimer,
     resetTimer,
+    setCustomDuration,
   };
 }

@@ -1,12 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { usePomodoro } from '../../hooks/usePomodoro';
 import { useWhiteNoise } from '../../hooks/useWhiteNoise';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { formatTime } from '../../lib/utils';
 import { useApp } from '../../lib/storage';
 import { WHITE_NOISES } from '../../lib/constants';
-import { Play, Pause, RotateCcw, Coffee, Focus, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, RotateCcw, Coffee, Focus, Volume2, VolumeX, Settings, Clock } from 'lucide-react';
 
 export default function FocusPage() {
   const { addPomodoroSession } = useApp();
@@ -16,15 +17,130 @@ export default function FocusPage() {
     addPomodoroSession({ duration: 25 });
   };
 
-  const { mode, timeLeft, isRunning, switchMode, toggleTimer, resetTimer } = usePomodoro(handleSessionComplete);
+  const { 
+    mode, 
+    timeLeft, 
+    isRunning, 
+    customDurations, 
+    switchMode, 
+    toggleTimer, 
+    resetTimer, 
+    setCustomDuration 
+  } = usePomodoro(handleSessionComplete);
 
   // 计算进度百分比
-  const totalTime = mode === 'focus' ? 25 * 60 : mode === 'shortBreak' ? 5 * 60 : 15 * 60;
+  const totalTime = customDurations[mode];
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
+
+  // 显示时长设置
+  const [showSettings, setShowSettings] = useState(false);
 
   return (
     <PageContainer>
-      <h1 className="text-2xl font-bold mb-6">专注模式</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">专注模式</h1>
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className="p-2 hover:bg-muted rounded-lg transition-colors"
+        >
+          <Settings className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* 设置面板 */}
+      {showSettings && (
+        <div className="bg-card border border-border rounded-2xl p-4 mb-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            时长设置（分钟）
+          </h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <label className="text-sm w-20">专注</label>
+              <button
+                onClick={() => setCustomDuration('focus', customDurations.focus - 60)}
+                disabled={isRunning}
+                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min="1"
+                max="120"
+                value={Math.floor(customDurations.focus / 60)}
+                onChange={(e) => setCustomDuration('focus', parseInt(e.target.value) * 60)}
+                disabled={isRunning}
+                className="w-16 px-2 py-1 bg-muted rounded-lg border border-border text-center disabled:opacity-50"
+              />
+              <button
+                onClick={() => setCustomDuration('focus', customDurations.focus + 60)}
+                disabled={isRunning}
+                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+              >
+                +
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm w-20">短休息</label>
+              <button
+                onClick={() => setCustomDuration('shortBreak', customDurations.shortBreak - 60)}
+                disabled={isRunning}
+                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min="1"
+                max="30"
+                value={Math.floor(customDurations.shortBreak / 60)}
+                onChange={(e) => setCustomDuration('shortBreak', parseInt(e.target.value) * 60)}
+                disabled={isRunning}
+                className="w-16 px-2 py-1 bg-muted rounded-lg border border-border text-center disabled:opacity-50"
+              />
+              <button
+                onClick={() => setCustomDuration('shortBreak', customDurations.shortBreak + 60)}
+                disabled={isRunning}
+                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+              >
+                +
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm w-20">长休息</label>
+              <button
+                onClick={() => setCustomDuration('longBreak', customDurations.longBreak - 60)}
+                disabled={isRunning}
+                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                min="1"
+                max="60"
+                value={Math.floor(customDurations.longBreak / 60)}
+                onChange={(e) => setCustomDuration('longBreak', parseInt(e.target.value) * 60)}
+                disabled={isRunning}
+                className="w-16 px-2 py-1 bg-muted rounded-lg border border-border text-center disabled:opacity-50"
+              />
+              <button
+                onClick={() => setCustomDuration('longBreak', customDurations.longBreak + 60)}
+                disabled={isRunning}
+                className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center disabled:opacity-50"
+              >
+                +
+              </button>
+            </div>
+            {isRunning && (
+              <p className="text-xs text-muted-foreground text-center">
+                ⏸️ 计时进行中，暂停后可修改
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 模式切换 */}
       <div className="flex gap-2 mb-8 justify-center">
