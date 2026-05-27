@@ -150,6 +150,7 @@ growth-tracker-next/
 │   │   └── PageContainer.tsx
 │   ├── features/
 │   │   ├── TaskCard.tsx
+│   │   ├── TaskConfigModal.tsx  # 任务配置弹窗（添加/编辑/删除任务类型）
 │   │   ├── MoodTracker.tsx
 │   │   ├── PomodoroTimer.tsx
 │   │   ├── StatCard.tsx
@@ -167,7 +168,9 @@ growth-tracker-next/
 ├── hooks/
 │   ├── useStorage.ts
 │   ├── usePomodoro.ts
-│   └── useMood.ts
+│   ├── useMood.ts
+│   ├── useWhiteNoise.ts       # 白噪音生成（Web Audio API）
+│   └── useTheme.tsx          # 主题切换管理
 ├── public/
 ├── package.json
 ├── tsconfig.json
@@ -186,6 +189,9 @@ interface AppContextType {
   saveMood: (date: string, mood: Mood, note?: string) => void;
   addPomodoroSession: (session: Omit<PomodoroSession, 'id' | 'completedAt'>) => void;
   saveDailyNotes: (date: string, notes: string) => void;
+  updateTaskType: (id: number, updates: Partial<TaskType>) => void;  // 更新任务类型
+  addTaskType: (task: Omit<TaskType, 'id'>) => void;                  // 添加新任务类型
+  deleteTaskType: (id: number) => void;                                // 删除任务类型
   exportData: () => void;
   importData: (data: AppData) => void;
   resetData: () => void;
@@ -196,6 +202,8 @@ interface AppContextType {
 - `useStorage()`: 数据存取与持久化
 - `usePomodoro()`: 番茄钟计时器逻辑
 - `useMood()`: 心情选择与追踪
+- `useWhiteNoise()`: 白噪音音频生成和控制，支持5种音效类型（白噪音、粉红噪音、雨声、咖啡馆、森林）
+- `useTheme()`: 主题切换管理，支持日间/夜间模式，本地存储持久化
 
 ## 7. Data Migration
 

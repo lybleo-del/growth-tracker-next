@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { useApp } from '../../lib/storage';
-import { User, Download, Upload, Trash2, Settings } from 'lucide-react';
+import { useTheme } from '../../hooks/useTheme';
+import { User, Download, Upload, Trash2, Settings, Sun, Moon } from 'lucide-react';
 
 export default function ProfilePage() {
   const { data, exportData, importData, resetData } = useApp();
+  const { theme, toggleTheme } = useTheme();
   const [showImport, setShowImport] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,6 +81,20 @@ export default function ProfilePage() {
         </h3>
 
         <div className="space-y-3">
+          {/* 主题切换 */}
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center justify-between p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all"
+          >
+            <div className="flex items-center gap-3">
+              {theme === 'light' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              <span>主题模式</span>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              {theme === 'light' ? '日间' : '夜间'}
+            </span>
+          </button>
+
           {/* 导出数据 */}
           <button
             onClick={exportData}

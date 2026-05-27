@@ -138,6 +138,9 @@ interface AppContextType {
   exportData: () => void;
   importData: (data: AppData) => void;
   resetData: () => void;
+  updateTaskType: (id: number, updates: Partial<import('./types').TaskType>) => void;
+  addTaskType: (taskType: Omit<import('./types').TaskType, 'id'>) => void;
+  deleteTaskType: (id: number) => void;
 }
 
 // 创建 Context
@@ -299,6 +302,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // 更新任务类型
+  const updateTaskType = useCallback((id: number, updates: Partial<import('./types').TaskType>) => {
+    setData(prevData => ({
+      ...prevData,
+      taskTypes: prevData.taskTypes.map(type =>
+        type.id === id ? { ...type, ...updates } : type
+      ),
+    }));
+  }, []);
+
+  // 添加任务类型
+  const addTaskType = useCallback((taskType: Omit<import('./types').TaskType, 'id'>) => {
+    setData(prevData => {
+      const maxId = Math.max(...prevData.taskTypes.map(t => t.id));
+      const newTaskType = { ...taskType, id: maxId + 1 };
+      return {
+        ...prevData,
+        taskTypes: [...prevData.taskTypes, newTaskType],
+      };
+    });
+  }, []);
+
+  // 删除任务类型
+  const deleteTaskType = useCallback((id: number) => {
+    setData(prevData => ({
+      ...prevData,
+      taskTypes: prevData.taskTypes.filter(type => type.id !== id),
+    }));
+  }, []);
+
   return (
     <AppContext.Provider value={{
       data,
@@ -309,6 +342,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       exportData,
       importData,
       resetData,
+      updateTaskType,
+      addTaskType,
+      deleteTaskType,
     }}>
       {children}
     </AppContext.Provider>

@@ -1,14 +1,16 @@
 'use client';
 
 import { usePomodoro } from '../../hooks/usePomodoro';
+import { useWhiteNoise } from '../../hooks/useWhiteNoise';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { formatTime } from '../../lib/utils';
 import { useApp } from '../../lib/storage';
 import { WHITE_NOISES } from '../../lib/constants';
-import { Play, Pause, RotateCcw, Coffee, Focus } from 'lucide-react';
+import { Play, Pause, RotateCcw, Coffee, Focus, Volume2, VolumeX } from 'lucide-react';
 
 export default function FocusPage() {
   const { addPomodoroSession } = useApp();
+  const { isPlaying, currentNoise, volume, play, stop, setVolume } = useWhiteNoise();
 
   const handleSessionComplete = () => {
     addPomodoroSession({ duration: 25 });
@@ -119,23 +121,59 @@ export default function FocusPage() {
         </button>
       </div>
 
-      {/* 白噪音（UI占位） */}
+      {/* 白噪音 */}
       <div className="bg-card border border-border rounded-2xl p-4">
-        <h2 className="text-lg font-semibold mb-4">白噪音</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">白噪音</h2>
+          {isPlaying && (
+            <button
+              onClick={stop}
+              className="text-sm text-primary hover:text-primary/80 flex items-center gap-1"
+            >
+              <VolumeX className="w-4 h-4" />
+              停止
+            </button>
+          )}
+        </div>
+        
+        {/* 音量控制 */}
+        {isPlaying && (
+          <div className="mb-4 flex items-center gap-3">
+            <Volume2 className="w-4 h-4 text-muted-foreground" />
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={volume}
+              onChange={(e) => setVolume(parseFloat(e.target.value))}
+              className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+            />
+            <span className="text-xs text-muted-foreground w-8">{Math.round(volume * 100)}%</span>
+          </div>
+        )}
+        
         <div className="flex flex-wrap gap-2">
           {WHITE_NOISES.map((noise) => (
             <button
               key={noise.id}
-              className="px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 transition-all flex items-center gap-2"
+              onClick={() => play(noise.id as any)}
+              className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${
+                currentNoise === noise.id
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted hover:bg-muted/80'
+              }`}
             >
               <span>{noise.emoji}</span>
               <span className="text-sm">{noise.name}</span>
+              {currentNoise === noise.id && isPlaying && (
+                <span className="ml-1">
+                  <Volume2 className="w-4 h-4" />
+                </span>
+              )}
             </button>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground mt-3">
-          提示：白噪音功能需要音频支持
-        </p>
       </div>
     </PageContainer>
   );
