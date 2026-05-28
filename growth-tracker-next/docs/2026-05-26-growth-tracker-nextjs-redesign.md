@@ -311,10 +311,11 @@ function migrateLegacyData(legacyData: any): AppData {
 ├─────────────────────┤
 │  主题切换           │  ← 深色/浅色
 ├─────────────────────┤
-│  数据管理           │
-│  - 导出数据        │
-│  - 导入数据        │
-│  - 重置数据        │
+│  更新日志           │
+│  - 版本历史记录    │
+│  - 更新内容展示    │
+├─────────────────────┤
+│  重置数据           │  ← 危险操作
 └─────────────────────┘
 ```
 
@@ -413,8 +414,6 @@ interface AppContextType {
   saveMood: (date: string, mood: Mood, note?: string) => void;
   addPomodoroSession: (session: Omit<PomodoroSession, 'id' | 'completedAt'>) => void;
   saveDailyNotes: (date: string, notes: string) => void;
-  exportData: () => void;
-  importData: (data: AppData) => void;
   resetData: () => void;
 }
 ```

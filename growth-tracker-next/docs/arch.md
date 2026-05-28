@@ -41,7 +41,7 @@ graph TB
 | / | 首页 - 心情选择、任务打卡、今日统计 |
 | /stats | 统计页 - 趋势图、分布图、成就 |
 | /focus | 专注页 - 番茄钟计时器 |
-| /profile | 个人页 - 用户信息、设置、数据管理 |
+| /profile | 个人页 - 用户信息、设置、更新日志 |
 
 ## 4. Data Model
 
@@ -200,8 +200,6 @@ interface AppContextType {
   updateTaskType: (id: number, updates: Partial<TaskType>) => void;  // 更新任务类型
   addTaskType: (task: Omit<TaskType, 'id'>) => void;                  // 添加新任务类型
   deleteTaskType: (id: number) => void;                                // 删除任务类型
-  exportData: () => void;
-  importData: (data: AppData) => void;
   resetData: () => void;
 }
 ```
