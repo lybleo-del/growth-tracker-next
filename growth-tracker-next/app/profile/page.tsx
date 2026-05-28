@@ -4,35 +4,50 @@ import { useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { useApp } from '../../lib/storage';
 import { useTheme } from '../../hooks/useTheme';
-import { User, Download, Upload, Trash2, Settings, Sun, Moon, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { User, Trash2, Settings, Sun, Moon, Cloud, CloudOff, RefreshCw, ChevronDown, ChevronUp, History } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { data, exportData, importData, resetData, isCloudSyncEnabled, toggleCloudSync, syncFromCloud, isLoading } = useApp();
+  const { data, resetData, isCloudSyncEnabled, toggleCloudSync, syncFromCloud, isLoading } = useApp();
   const { theme, toggleTheme } = useTheme();
-  const [showImport, setShowImport] = useState(false);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const importedData = JSON.parse(event.target?.result as string);
-          importData(importedData);
-          alert('数据导入成功！');
-        } catch (error) {
-          alert('导入失败，请检查文件格式');
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
+  const [showChangelog, setShowChangelog] = useState(false);
 
   const handleReset = () => {
     if (confirm('确定要重置所有数据吗？此操作不可恢复！')) {
       resetData();
     }
   };
+
+  const changelog = [
+    {
+      version: 'v2.0.0',
+      date: '2026-05-27',
+      changes: [
+        '使用 Next.js 重写整个应用',
+        '支持 PWA 离线使用',
+        '新增云端同步功能',
+        '优化 UI 设计和交互体验'
+      ]
+    },
+    {
+      version: 'v1.5.0',
+      date: '2026-04-15',
+      changes: [
+        '新增成就系统',
+        '优化任务管理功能',
+        '添加专注模式计时器'
+      ]
+    },
+    {
+      version: 'v1.0.0',
+      date: '2026-03-01',
+      changes: [
+        '初始版本发布',
+        '支持日常打卡记录',
+        '支持任务管理',
+        '支持数据统计'
+      ]
+    }
+  ];
 
   return (
     <PageContainer>
@@ -126,36 +141,36 @@ export default function ProfilePage() {
             </button>
           )}
 
-          {/* 导出数据 */}
-          <button
-            onClick={exportData}
-            className="w-full flex items-center justify-between p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <Download className="w-5 h-5" />
-              <span>导出数据</span>
-            </div>
-          </button>
-
-          {/* 导入数据 */}
+          {/* 更新日志 */}
           <div className="relative">
             <button
-              onClick={() => setShowImport(!showImport)}
+              onClick={() => setShowChangelog(!showChangelog)}
               className="w-full flex items-center justify-between p-4 rounded-xl bg-muted hover:bg-muted/80 transition-all"
             >
               <div className="flex items-center gap-3">
-                <Upload className="w-5 h-5" />
-                <span>导入数据</span>
+                <History className="w-5 h-5" />
+                <span>更新日志</span>
               </div>
+              {showChangelog ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </button>
-            {showImport && (
-              <div className="mt-3 p-4 border border-border rounded-xl">
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleFileChange}
-                  className="w-full text-sm"
-                />
+            {showChangelog && (
+              <div className="mt-3 p-4 border border-border rounded-xl space-y-4">
+                {changelog.map((item) => (
+                  <div key={item.version}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold">{item.version}</span>
+                      <span className="text-sm text-muted-foreground">{item.date}</span>
+                    </div>
+                    <ul className="space-y-1">
+                      {item.changes.map((change, index) => (
+                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          {change}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
             )}
           </div>
