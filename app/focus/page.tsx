@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { usePomodoro } from '../../hooks/usePomodoro';
-import { useWhiteNoise } from '../../hooks/useWhiteNoise';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { formatTime } from '../../lib/utils';
-import { useApp } from '../../lib/storage';
-import { WHITE_NOISES } from '../../lib/constants';
+import { usePomodoro } from '@/hooks/usePomodoro';
+import { useWhiteNoise } from '@/hooks/useWhiteNoise';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { formatTime } from '@/lib/utils';
+import { useApp } from '@/lib/storage';
+import { WHITE_NOISES } from '@/lib/constants';
 import { Play, Pause, RotateCcw, Coffee, Focus, Volume2, VolumeX, Settings, Clock } from 'lucide-react';
 
 export default function FocusPage() {

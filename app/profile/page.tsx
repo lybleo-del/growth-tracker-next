@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { useApp } from '../../lib/storage';
-import { useTheme } from '../../hooks/useTheme';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { useApp } from '@/lib/storage';
+import { useTheme } from '@/hooks/useTheme';
 import { User, Trash2, Settings, Sun, Moon, Cloud, CloudOff, RefreshCw, ChevronDown, ChevronUp, History } from 'lucide-react';
 
 export default function ProfilePage() {

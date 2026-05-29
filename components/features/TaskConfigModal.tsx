@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { TaskType } from '../../lib/types';
+import type { TaskType } from '@/lib/types';
 import { X, Plus, Trash2 } from 'lucide-react';
 
 interface TaskConfigModalProps {

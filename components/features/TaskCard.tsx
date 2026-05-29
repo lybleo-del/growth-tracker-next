@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { TaskType } from '../../lib/types';
+import { TaskType } from '@/lib/types';
 import { Check } from 'lucide-react';
 
 interface TaskCardProps {

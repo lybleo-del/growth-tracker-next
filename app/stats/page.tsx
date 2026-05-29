@@ -13,9 +13,9 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { PageContainer } from '../../components/layout/PageContainer';
-import { useApp } from '../../lib/storage';
-import { getTodayString } from '../../lib/utils';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { useApp } from '@/lib/storage';
+import { getTodayString } from '@/lib/utils';
 import { Calendar as CalendarIcon, BarChart3, CheckCircle2, Timer } from 'lucide-react';
 
 const COLORS = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#fa709a'];

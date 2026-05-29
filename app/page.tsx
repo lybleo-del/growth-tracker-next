@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { PageContainer } from '../components/layout/PageContainer';
-import { MoodTracker } from '../components/features/MoodTracker';
-import { TaskCard } from '../components/features/TaskCard';
-import { StatCard } from '../components/features/StatCard';
-import { TaskConfigModal } from '../components/features/TaskConfigModal';
-import { useApp } from '../lib/storage';
-import { getTodayString, calculateStreak } from '../lib/utils';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { MoodTracker } from '@/components/features/MoodTracker';
+import { TaskCard } from '@/components/features/TaskCard';
+import { StatCard } from '@/components/features/StatCard';
+import { TaskConfigModal } from '@/components/features/TaskConfigModal';
+import { useApp } from '@/lib/storage';
+import { getTodayString, calculateStreak } from '@/lib/utils';
 import { Calendar, Trophy, Timer, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Home() {

@@ -1,7 +1,7 @@
 'use client';
 
-import { Mood } from '../../lib/types';
-import { MOODS } from '../../lib/constants';
+import { Mood } from '@/lib/types';
+import { MOODS } from '@/lib/constants';
 
 interface MoodTrackerProps {
   currentMood?: Mood;

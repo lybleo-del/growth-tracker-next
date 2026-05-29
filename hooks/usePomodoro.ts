@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { POMODORO_DURATION, SHORT_BREAK_DURATION, LONG_BREAK_DURATION } from '../lib/constants';
+import { POMODORO_DURATION, SHORT_BREAK_DURATION, LONG_BREAK_DURATION } from '@/lib/constants';
 
 type PomodoroMode = 'focus' | 'shortBreak' | 'longBreak';
 
