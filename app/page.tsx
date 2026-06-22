@@ -8,7 +8,7 @@ import { TaskCard } from '@/components/features/TaskCard';
 import { StatCard } from '@/components/features/StatCard';
 import { TaskConfigModal } from '@/components/features/TaskConfigModal';
 import { useApp } from '@/lib/storage';
-import { getTodayString, calculateStreak } from '@/lib/utils';
+import { getTodayString, calculateStreak, countCheckInDays } from '@/lib/utils';
 import { Calendar, Trophy, Timer, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Home() {
@@ -41,7 +41,7 @@ export default function Home() {
   const completedTaskTypes = new Set(selectedTasks.map(t => t.type));
 
   // 统计信息
-  const totalRecords = data.dailyRecords.length;
+  const totalRecords = countCheckInDays(data.dailyRecords);
   const streak = calculateStreak(data.dailyRecords);
   const totalPomodoros = data.dailyRecords.reduce((sum, r) => sum + r.pomodoroSessions.length, 0);
 

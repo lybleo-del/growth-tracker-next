@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useApp } from '@/lib/storage';
+import { countCheckInDays } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
 import { User, Trash2, Settings, Sun, Moon, Cloud, CloudOff, RefreshCw, ChevronDown, ChevronUp, History } from 'lucide-react';
 
@@ -70,7 +71,7 @@ export default function ProfilePage() {
         {/* 统计概览 */}
         <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border">
           <div className="text-center">
-            <div className="text-2xl font-bold">{data.dailyRecords.length}</div>
+            <div className="text-2xl font-bold">{countCheckInDays(data.dailyRecords)}</div>
             <div className="text-xs text-muted-foreground">打卡天数</div>
           </div>
           <div className="text-center">

@@ -81,7 +81,7 @@ function checkAchievements(data: AppData): AppData {
     updated = true;
   }
 
-  if (newData.dailyRecords.length >= 30 && !newData.achievements[2].unlocked) {
+  if (newData.dailyRecords.filter(r => r.tasks.length > 0).length >= 30 && !newData.achievements[2].unlocked) {
     newData.achievements[2] = {
       ...newData.achievements[2],
       unlocked: true,

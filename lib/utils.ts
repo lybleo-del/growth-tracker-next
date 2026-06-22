@@ -31,6 +31,11 @@ export function getTodayString(): string {
   return formatDate(new Date());
 }
 
+// 打卡天数：只统计有打卡记录的天数（只选心情不计入）
+export function countCheckInDays(dailyRecords: { tasks: any[] }[]): number {
+  return dailyRecords.filter(r => r.tasks.length > 0).length;
+}
+
 // 计算连续打卡天数
 export function calculateStreak(dailyRecords: { date: string; tasks: any[] }[]): number {
   if (dailyRecords.length === 0) return 0;
