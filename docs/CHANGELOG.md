@@ -4,6 +4,24 @@
 
 ---
 
+## [v2.0.3] - 2026-06-22
+
+### Bug 修复 / 部署加固
+
+- **修复** Vercel 构建时 recharts 报出的 `width(-1)/height(-1)` 警告：图表改为客户端挂载后再渲染（构建静态预渲染阶段容器无真实尺寸）
+- **新增** `package.json` 的 `engines` 字段，锁定 Node `>=20.9.0`，避免 Vercel 默认 Node 版本变动导致构建异常
+- **新增** `.env.example`，列出 Supabase 同步所需的环境变量（缺失不影响构建，仅云端同步不可用）
+- **说明** 历史部署失败的根因（Next.js 项目未在仓库根目录 + 残留旧 Vite 文件干扰框架检测 + `vercel.json` 反复改坏）已在此前提交中解决，当前 `npm run build` 本地验证通过
+
+### 修改文件
+
+- `app/stats/page.tsx` - 图表客户端挂载后渲染
+- `package.json` - 新增 `engines` 字段
+- `.env.example` - 新建环境变量示例
+- `.gitignore` - 放行 `.env.example`
+
+---
+
 ## [v2.0.2] - 2026-05-28
 
 ### Bug 修复
