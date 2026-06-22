@@ -7,11 +7,10 @@ import { Check } from 'lucide-react';
 interface TaskCardProps {
   taskType: TaskType;
   completedToday: boolean;
-  completedDuration?: number;
   onClick: () => void;
 }
 
-export function TaskCard({ taskType, completedToday, completedDuration, onClick }: TaskCardProps) {
+export function TaskCard({ taskType, completedToday, onClick }: TaskCardProps) {
   return (
     <motion.button
       whileHover={{ scale: 1.02 }}
@@ -32,7 +31,7 @@ export function TaskCard({ taskType, completedToday, completedDuration, onClick 
         <span className="text-4xl">{taskType.icon}</span>
         <span className="font-semibold">{taskType.name}</span>
         <span className="text-xs text-muted-foreground">
-          {completedToday ? `已打卡 · ${completedDuration ?? taskType.defaultDuration}分钟` : `${taskType.defaultDuration}分钟`}
+          {completedToday ? '已打卡，点击取消' : `${taskType.defaultDuration}分钟`}
         </span>
       </div>
     </motion.button>

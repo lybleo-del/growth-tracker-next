@@ -4,24 +4,36 @@
 
 ---
 
+## [v2.0.6] - 2026-06-22
+
+### 调整
+
+- **撤销打卡时长编辑**：移除 v2.0.5 引入的打卡弹窗，打卡时间不再允许修改（统一使用任务预设时长）
+- 原因：弹窗确认按钮被底部导航栏遮挡，且按需求不再支持修改打卡时间
+
+### 修改文件
+
+- `app/page.tsx` - 移除打卡弹窗，恢复点击直接打卡
+- `components/features/TaskCard.tsx` - 移除时长相关展示
+- `components/features/TaskCheckInModal.tsx` - 删除
+- `lib/storage.tsx` - 移除 `updateTaskRecord`
+
+---
+
 ## [v2.0.5] - 2026-06-22
 
 ### 功能优化
 
 - **心情可取消**：再次点击已选中的心情即可取消选择（之前选了无法撤销）
-- **打卡可取消/可改时长**：点击任务卡片改为弹出打卡弹窗
-  - 未打卡：可在打卡前调整本次时长（默认填入预设时长），再确认打卡
-  - 已打卡：可「保存时长」调整实际时长，或「取消打卡」删除本次记录
+- **打卡可取消**：再次点击已打卡的任务卡片可取消该打卡（带确认）
 - **修复** 重复打卡 bug：此前重复点击已打卡卡片会不断新增重复记录
-- 任务卡片已打卡时显示实际记录的时长（「已打卡 · X分钟」）
 
 ### 修改文件
 
-- `lib/storage.tsx` - 新增 `removeTaskRecord` / `updateTaskRecord` / `clearMood`
+- `lib/storage.tsx` - 新增 `removeTaskRecord` / `clearMood`
 - `components/features/MoodTracker.tsx` - 支持再次点击取消选择
-- `components/features/TaskCard.tsx` - 改为点击打开打卡弹窗，显示实际时长
-- `components/features/TaskCheckInModal.tsx` - 新建打卡弹窗（调整时长 / 取消打卡）
-- `app/page.tsx` - 接入打卡弹窗与心情取消
+- `components/features/TaskCard.tsx` - 已打卡状态提示可点击取消
+- `app/page.tsx` - 接入打卡取消与心情取消
 
 ---
 

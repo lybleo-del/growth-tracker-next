@@ -5,19 +5,16 @@ import Link from 'next/link';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { MoodTracker } from '@/components/features/MoodTracker';
 import { TaskCard } from '@/components/features/TaskCard';
-import { TaskCheckInModal } from '@/components/features/TaskCheckInModal';
 import { StatCard } from '@/components/features/StatCard';
 import { TaskConfigModal } from '@/components/features/TaskConfigModal';
 import { useApp } from '@/lib/storage';
 import { getTodayString, calculateStreak } from '@/lib/utils';
-import type { TaskType } from '@/lib/types';
 import { Calendar, Trophy, Timer, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Home() {
-  const { data, addTaskRecord, removeTaskRecord, updateTaskRecord, saveMood, clearMood, updateTaskType, addTaskType, deleteTaskType } = useApp();
+  const { data, addTaskRecord, removeTaskRecord, saveMood, clearMood, updateTaskType, addTaskType, deleteTaskType } = useApp();
   const [selectedDate, setSelectedDate] = useState(getTodayString());
   const [showConfig, setShowConfig] = useState(false);
-  const [checkInTaskType, setCheckInTaskType] = useState<TaskType | null>(null);
 
   const selectedRecord = data.dailyRecords.find(r => r.date === selectedDate);
 
@@ -121,8 +118,21 @@ export default function Home() {
               key={taskType.id}
               taskType={taskType}
               completedToday={completedTaskTypes.has(taskType.id)}
-              completedDuration={selectedTasks.find(t => t.type === taskType.id)?.duration}
-              onClick={() => setCheckInTaskType(taskType)}
+              onClick={() => {
+                const existing = selectedTasks.find(t => t.type === taskType.id);
+                if (existing) {
+                  if (confirm(`取消「${taskType.name}」的打卡？`)) {
+                    removeTaskRecord(selectedDate, existing.id);
+                  }
+                } else {
+                  addTaskRecord(selectedDate, {
+                    type: taskType.id,
+                    completed: true,
+                    duration: taskType.defaultDuration,
+                    tags: [],
+                  });
+                }
+              }}
             />
           ))}
         </div>
@@ -151,27 +161,6 @@ export default function Home() {
       <Link href="/focus" className="fixed bottom-24 right-4 bg-primary text-primary-foreground rounded-full p-4 shadow-lg hover:scale-105 transition-all">
         <Timer className="w-6 h-6" />
       </Link>
-
-      {/* 打卡弹窗 */}
-      {checkInTaskType && (
-        <TaskCheckInModal
-          taskType={checkInTaskType}
-          existingRecord={selectedTasks.find(t => t.type === checkInTaskType.id)}
-          onClose={() => setCheckInTaskType(null)}
-          onCheckIn={(duration) =>
-            addTaskRecord(selectedDate, {
-              type: checkInTaskType.id,
-              completed: true,
-              duration,
-              tags: [],
-            })
-          }
-          onUpdate={(recordId, duration) =>
-            updateTaskRecord(selectedDate, recordId, { duration })
-          }
-          onCancel={(recordId) => removeTaskRecord(selectedDate, recordId)}
-        />
-      )}
 
       {/* 任务配置弹窗 */}
       <TaskConfigModal

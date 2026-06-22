@@ -136,7 +136,6 @@ interface AppContextType {
   toggleCloudSync: () => void;
   addTaskRecord: (date: string, task: Omit<TaskRecord, 'id' | 'completedAt'>) => void;
   removeTaskRecord: (date: string, recordId: string) => void;
-  updateTaskRecord: (date: string, recordId: string, updates: Partial<Pick<TaskRecord, 'duration' | 'notes' | 'tags'>>) => void;
   saveMood: (date: string, mood: Mood, note?: string) => void;
   clearMood: (date: string) => void;
   addPomodoroSession: (session: Omit<PomodoroSession, 'id' | 'completedAt'>) => void;
@@ -248,18 +247,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ...prevData,
       dailyRecords: prevData.dailyRecords.map(r =>
         r.date === date ? { ...r, tasks: r.tasks.filter(t => t.id !== recordId) } : r
-      ),
-    }));
-  }, []);
-
-  // 调整某条打卡记录（如修改实际时长）。云同步关闭时仅作用于本地数据。
-  const updateTaskRecord = useCallback((date: string, recordId: string, updates: Partial<Pick<TaskRecord, 'duration' | 'notes' | 'tags'>>) => {
-    setData(prevData => ({
-      ...prevData,
-      dailyRecords: prevData.dailyRecords.map(r =>
-        r.date === date
-          ? { ...r, tasks: r.tasks.map(t => (t.id === recordId ? { ...t, ...updates } : t)) }
-          : r
       ),
     }));
   }, []);
@@ -457,7 +444,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toggleCloudSync,
       addTaskRecord,
       removeTaskRecord,
-      updateTaskRecord,
       saveMood,
       clearMood,
       addPomodoroSession,
