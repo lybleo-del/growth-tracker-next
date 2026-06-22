@@ -4,6 +4,19 @@
 
 ---
 
+## [v2.0.4] - 2026-06-22
+
+### 工程化
+
+- **新增** `.githooks/pre-push` 钩子：每次 `git push` 前自动运行 `npm run build`，构建失败则中止推送，避免把会导致 Vercel 部署失败的代码推上远程
+- **启用方式**：每台开发机执行一次 `git config core.hooksPath .githooks`（临时跳过用 `git push --no-verify`）
+
+### 修改文件
+
+- `.githooks/pre-push` - 新建推送前构建检查钩子
+
+---
+
 ## [v2.0.3] - 2026-06-22
 
 ### Bug 修复 / 部署加固

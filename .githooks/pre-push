@@ -1,0 +1,13 @@
+#!/bin/sh
+# 推送前自动运行生产构建。构建失败则中止推送，避免把会导致 Vercel 部署失败的代码推上去。
+# 启用方式（每台机器执行一次）：git config core.hooksPath .githooks
+# 临时跳过本次检查：git push --no-verify
+
+echo "▶ 推送前检查：正在运行 npm run build ..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "✗ 构建失败，已中止推送。请修复后再 push（或用 git push --no-verify 跳过）。"
+  exit 1
+fi
+echo "✓ 构建通过，继续推送。"
+exit 0
