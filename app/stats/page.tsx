@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -28,6 +28,10 @@ export default function StatsPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('week');
   const [viewMode, setViewMode] = useState<ViewMode>('overview');
   const [selectedDate, setSelectedDate] = useState(getTodayString());
+  // 图表依赖真实 DOM 尺寸，构建时静态预渲染阶段容器宽高为 -1 会触发 recharts 警告，
+  // 因此仅在客户端挂载后渲染图表。
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const selectedRecord = data.dailyRecords.find(r => r.date === selectedDate);
 
@@ -241,6 +245,7 @@ export default function StatsPage() {
       <div className="bg-card border border-border rounded-2xl p-4 mb-6">
         <h2 className="text-lg font-semibold mb-4">任务完成趋势</h2>
         <div className="h-64">
+          {mounted && (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
@@ -262,6 +267,7 @@ export default function StatsPage() {
               />
             </LineChart>
           </ResponsiveContainer>
+          )}
         </div>
       </div>
 
@@ -269,6 +275,7 @@ export default function StatsPage() {
       <div className="bg-card border border-border rounded-2xl p-4 mb-6">
         <h2 className="text-lg font-semibold mb-4">任务分布</h2>
         <div className="h-64">
+          {mounted && (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -290,6 +297,7 @@ export default function StatsPage() {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
+          )}
         </div>
       </div>
 

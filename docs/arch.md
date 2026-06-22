@@ -250,3 +250,14 @@ const DEFAULT_ACHIEVEMENTS: Achievement[] = [
   { id: 6, name: '专注达人', description: '完成100个番茄钟', icon: '⏱️', unlocked: false },
 ];
 ```
+
+## 8. Deployment (Vercel)
+
+- **托管平台**: Vercel（自动检测 Next.js 框架）
+- **仓库根目录**: Next.js 项目必须位于仓库根目录；Vercel 项目设置中的 Root Directory 应留空或为 `./`
+- **构建命令**: `npm run build`（见 `vercel.json`）
+- **Node 版本**: `package.json` 的 `engines` 字段锁定 `>=20.9.0`
+- **环境变量**（在 Vercel Settings → Environment Variables 配置，参考 `.env.example`）:
+  - `NEXT_PUBLIC_SUPABASE_URL` —— 可选，缺失不影响构建，仅云端同步不可用
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY` —— 同上
+- **注意**: `lib/supabase.ts` 对缺失环境变量做了容错（返回 null），因此环境变量缺失不会导致构建失败，数据将仅保存在浏览器 LocalStorage
