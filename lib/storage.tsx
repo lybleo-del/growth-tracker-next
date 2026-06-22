@@ -135,7 +135,10 @@ interface AppContextType {
   isCloudSyncEnabled: boolean;
   toggleCloudSync: () => void;
   addTaskRecord: (date: string, task: Omit<TaskRecord, 'id' | 'completedAt'>) => void;
+  removeTaskRecord: (date: string, recordId: string) => void;
+  updateTaskRecord: (date: string, recordId: string, updates: Partial<Pick<TaskRecord, 'duration' | 'notes' | 'tags'>>) => void;
   saveMood: (date: string, mood: Mood, note?: string) => void;
+  clearMood: (date: string) => void;
   addPomodoroSession: (session: Omit<PomodoroSession, 'id' | 'completedAt'>) => void;
   saveDailyNotes: (date: string, notes: string) => void;
   exportData: () => void;
@@ -239,6 +242,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, [isCloudSyncEnabled]);
 
+  // 删除某条打卡记录（取消打卡）。云同步关闭时仅作用于本地数据。
+  const removeTaskRecord = useCallback((date: string, recordId: string) => {
+    setData(prevData => ({
+      ...prevData,
+      dailyRecords: prevData.dailyRecords.map(r =>
+        r.date === date ? { ...r, tasks: r.tasks.filter(t => t.id !== recordId) } : r
+      ),
+    }));
+  }, []);
+
+  // 调整某条打卡记录（如修改实际时长）。云同步关闭时仅作用于本地数据。
+  const updateTaskRecord = useCallback((date: string, recordId: string, updates: Partial<Pick<TaskRecord, 'duration' | 'notes' | 'tags'>>) => {
+    setData(prevData => ({
+      ...prevData,
+      dailyRecords: prevData.dailyRecords.map(r =>
+        r.date === date
+          ? { ...r, tasks: r.tasks.map(t => (t.id === recordId ? { ...t, ...updates } : t)) }
+          : r
+      ),
+    }));
+  }, []);
+
   const saveMood = useCallback((date: string, mood: Mood, note?: string) => {
     setData(prevData => {
       const newDailyRecords = [...prevData.dailyRecords];
@@ -268,6 +293,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
     });
   }, [isCloudSyncEnabled]);
+
+  // 清除某天的心情（取消选择）。云同步关闭时仅作用于本地数据。
+  const clearMood = useCallback((date: string) => {
+    setData(prevData => ({
+      ...prevData,
+      dailyRecords: prevData.dailyRecords.map(r =>
+        r.date === date ? { ...r, mood: undefined } : r
+      ),
+    }));
+  }, []);
 
   const addPomodoroSession = useCallback((session: Omit<PomodoroSession, 'id' | 'completedAt'>) => {
     setData(prevData => {
@@ -421,7 +456,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       isCloudSyncEnabled,
       toggleCloudSync,
       addTaskRecord,
+      removeTaskRecord,
+      updateTaskRecord,
       saveMood,
+      clearMood,
       addPomodoroSession,
       saveDailyNotes,
       exportData,

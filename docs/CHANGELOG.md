@@ -4,6 +4,27 @@
 
 ---
 
+## [v2.0.5] - 2026-06-22
+
+### 功能优化
+
+- **心情可取消**：再次点击已选中的心情即可取消选择（之前选了无法撤销）
+- **打卡可取消/可改时长**：点击任务卡片改为弹出打卡弹窗
+  - 未打卡：可在打卡前调整本次时长（默认填入预设时长），再确认打卡
+  - 已打卡：可「保存时长」调整实际时长，或「取消打卡」删除本次记录
+- **修复** 重复打卡 bug：此前重复点击已打卡卡片会不断新增重复记录
+- 任务卡片已打卡时显示实际记录的时长（「已打卡 · X分钟」）
+
+### 修改文件
+
+- `lib/storage.tsx` - 新增 `removeTaskRecord` / `updateTaskRecord` / `clearMood`
+- `components/features/MoodTracker.tsx` - 支持再次点击取消选择
+- `components/features/TaskCard.tsx` - 改为点击打开打卡弹窗，显示实际时长
+- `components/features/TaskCheckInModal.tsx` - 新建打卡弹窗（调整时长 / 取消打卡）
+- `app/page.tsx` - 接入打卡弹窗与心情取消
+
+---
+
 ## [v2.0.4] - 2026-06-22
 
 ### 工程化
