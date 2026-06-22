@@ -16,6 +16,26 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## 本地环境设置（克隆后执行一次）
+
+启用推送前自动构建检查（`git push` 前会自动跑 `npm run build`，构建失败则中止推送，避免把会导致 Vercel 部署失败的代码推上去）：
+
+```bash
+git config core.hooksPath .githooks
+```
+
+> 临时跳过本次检查：`git push --no-verify`
+
+如使用 Supabase 云端同步，复制 `.env.example` 为 `.env.local` 并填入对应值（不填也能正常构建运行，仅云端同步不可用）：
+
+```bash
+cp .env.example .env.local
+```
+
+## 部署（Vercel）
+
+推送到 `main` 后 Vercel 会自动部署。Supabase 环境变量需在 Vercel 项目 **Settings → Environment Variables** 中配置（参考 `.env.example`）。详见 `docs/arch.md` 的部署章节。
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
